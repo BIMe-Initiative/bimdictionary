@@ -1,0 +1,124 @@
+{% extends 'dictionary/base.html' %}
+
+{% load i18n %}
+{% load markup %}
+{% load dictionary_tags %}
+{% load core_tags %}
+
+{% block content %}
+    <div class="row">
+        <div class="col-md-8">
+            {% if not version.is_current %}
+                <div class="alert alert-warning">
+                    You are viewing an older version of this term. The current
+                    version is <a href="{{ term.current_version.get_absolute_url }}">here</a>.
+                </div>
+            {% endif %}
+            <div class="card">
+                <div class="card-body{% if termcontent.is_rtl %} rtl{% endif %}">
+                    <span class="pull-right">
+                        <span class="text-muted term-code clipboard"
+                            id="code-link"
+                            rel="tooltip"
+                            title="Click to copy link"
+                            data-clipboard-text="{{ termcontent.permalink }}">
+                            {{ termcontent.code }}
+                        </span>
+                    </span>
+                    <h3 class="card-title">
+                        {{ termcontent.title }}
+                        {% if termcontent.acronym %}
+                            ({{ termcontent.acronym }})
+                        {% endif %}
+                        {% if term.country %}
+                            <img src="{{ term.country.flag }}"
+                                title="{% trans 'Term specific to ' %}{{ term.country.name }}" />
+                        {% endif %}
+                    </h3>
+                    <div class="card-text" data-language="{{ termcontent.language }}">
+                        {% autoescape off %}
+                            {{ termcontent.rendered_description|markdown }}
+                            {% if termcontent.extended_description %}
+                                <div>
+                                    {{ termcontent.extended_description|highlight_terms }}
+                                </div>
+                            {% endif %}
+                        {% endautoescape %}
+                    </div>
+                </div>
+                <div class="card-body text-muted" style="padding-top: 0">
+                    {% if termcontent.similar.all %}
+                        <div>
+                            <small>{% trans "Similar terms" %}</small>:&nbsp;
+                            {% for synonym in termcontent.similar.all %}
+                                <small class="synonym">{{ synonym }}{% if not forloop.last %},&nbsp;{% endif %}</small>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                    {% if termcontent.author %}
+                        <div>
+                            <small>Author:</small>
+                            <small>{{ termcontent.author }}</small>
+                        </div>
+                    {% endif %}
+                    {% if term.concepts.all %}
+                        <div>
+                            <small>Concepts:</small>
+                            {% for concept in term.concepts.all %}
+                                <small>{{ concept }}</small>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="card-footer">
+
+                    {% if termcontent.other_languages %}
+                        <nav class="nav nav-inline pull-right">
+                            {% for other_term in termcontent.other_languages %}
+                                <a class="nav-link {% if other_term.version.number < term.current_version.number %}old-version{% endif %}"
+                                    href="{% url 'term-detail' other_term.language other_term.version.term.slug other_term.version.number %}">
+                                    {{ other_term.language }}
+                                </a>
+                            {% endfor %}
+                        </nav>
+                    {% endif %}
+
+                    {% if version.other_versions %}
+                        <div class="dropdown">
+                            <button class="btn btn-link btn-sm dropdown-toggle" data-toggle="dropdown">Version {{ version.number }}</button>
+                            <div class="dropdown-menu">
+                                {% for version in version.other_versions %}
+                                <a class="dropdown-item" href="{{ version.get_absolute_url }}">
+                                    Version {{ version.number }}
+                                </a>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    {% else %}
+                        <small>Version {{ version.number }}</small>
+                    {% endif %}
+                </div>
+            </div>
+            <a href="{% url 'index' %}" class="btn btn-outline-primary" style="margin: 1em 0">
+                <i class="fa fa-fw fa-chevron-left"></i>
+                Back to search page
+            </a>
+            {% if request.user.is_authenticated %}
+                {% include "core/_disqus_comments.html" %}
+            {% endif %}
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h4 class="card-title">
+                        {% trans 'Info Channel' %}
+                    </h4>
+                    <div class="card-text">
+                        {% textblock 'info-channel-dictionary-detail' %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+

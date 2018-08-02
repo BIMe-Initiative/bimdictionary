@@ -1,0 +1,67 @@
+<html>
+    <head>
+        <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+        <title>BIM Dictionary</title>
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+
+        <style type="text/css" media="all">
+            body {
+                font-family: sans-serif;
+            }
+            .card {
+                margin: 1rem 0;
+            }
+            #results {
+                height: 95%;
+                overflow: auto;
+            }
+            #footer {
+                height: 10%;
+            }
+        </style>
+    </head>
+    <body>
+        {% verbatim %}
+        <div id="app">
+            <h3>BIM Dictionary</h3>
+            <input class="form-control" placeholder="Search" v-model="input" v-on:keyup="search" />
+            {{ results.length }} results found
+            <div id="results">
+                <div class="card" v-for="result in results">
+                    <div class="card-body">
+                        <h4 class="card-title">{{ result.title }}</h4>
+                        <div class="card-text" v-html="result.description"></div>
+                        <span v-for="concept in result.concepts" class="badge badge-secondary">{{ concept }}</span>
+                    </div>
+                </div>
+            </div>
+            <div id="footer">
+               XXX
+            </div>
+        </div>
+        {% endverbatim %}
+        <script src="https://unpkg.com/vue"></script>
+        <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+        <script>
+            var language = '{{ language }}';
+            var url = '/api/v1/dictionary/simple/';
+             var app = new Vue({
+                 el: '#app',
+                 data: {
+                     results: [],
+                     input: ''
+                 },
+                 methods: {
+                     search: function() {
+                         axios.get(url + '?language=' + language + '&q=' + this.input).then(resp => {
+                             this.results = resp.data.results;
+                         })
+                     }
+                 },
+                 mounted: function() {
+                     this.search();
+                 }
+             })
+         </script>
+    </body>
+</html>

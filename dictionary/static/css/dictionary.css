@@ -1,0 +1,27 @@
+.letter-filter {
+    cursor: pointer;
+    margin-left: 0.5em;
+}
+
+.letter-filter:hover {
+    color: #29ABE2;
+}
+                                                                                
+.letter-filter.active {
+    color: #29ABE2;
+    font-weight: bold;
+}
+
+#term-list .block-title {
+margin: 0;
+}
+
+#term-list .block-title a {
+    background: url(/static/images/doc_empty_icon&16.png) center left no-repeat;
+    padding: 5px 5px 5px 20px;
+}
+
+#term-list .block-body {
+    font-size: 130%;
+}
+

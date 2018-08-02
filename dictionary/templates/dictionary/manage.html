@@ -1,0 +1,144 @@
+{% extends 'dictionary/base.html' %}
+
+{% block content %}
+    <div class="row" style="margin: 1rem 0">
+        <div class="col-md-6">
+            <h1>Manage Terms</h1>
+        </div>
+        <div class="col-md-6">
+            <form action="" method="get">
+                <div class="input-group">
+                    <input class="form-control" type="text" name="q" value="{{ q }}" placeholder="Search terms" />
+                    <div class="input-group-append">
+                        <span class="input-group-text">
+                        {% if q %}
+                            <a href="{% url 'manage' %}">
+                                <i class="fa fa-fw fa-times"></i>
+                                Clear
+                            </a>
+                            {% else %}
+                            <i class="fa fa-fw fa-search"></i>
+                        {% endif %}
+                        </span>
+                    </div>
+                </div>
+                {% comment %}
+                <select class="form-control col-sm-4" name="language">
+                    {% if not language %}
+                    <option selected>----------</option>
+                    {% endif %}
+                    {% for code, name in languages %}
+                    <option value="{{ code }}" {% if language == code %}selected{% endif %}>{{ name }}</option>
+                    {% endfor %}
+                </select>
+                {% endcomment %}
+            </form>
+        </div>
+    </div>
+
+    <table class="table table-striped table-sm">
+         <thead>
+             <tr>
+                 <th>Term</th>
+                 <th>Versions</th>
+                 <th>Translations</th>
+             </tr>
+             {% comment %}
+             <tr>
+                 <td></td>
+                 <td>
+                     <span class="badge badge-primary">Current Version</span>
+                     <span class="badge badge-secondary">Non-current Version</span>
+                 </td>
+                 <td>
+                     <span class="badge badge-primary">Updated</span>
+                     <span class="badge badge-secondary">Needs to be created</span>
+                     <span class="badge badge-warning">Needs to be updated</span>
+                 </td>
+             </tr>
+             {% endcomment %}
+         </thead>
+         <tbody>
+             {% for term in term_list %}
+                 <tr>
+                     <td>
+                         <a href="{% url 'term-manage' term.slug term.version_number %}">
+                             {{ term }}
+                         </a>
+                     </td>
+                     <td>
+                         {% for version in term.versions.all %}
+                            <a class="badge badge-{% if version == term.current_version %}success{% else %}secondary{% endif %}"
+                               rel="tooltip"
+                               title="{% if version == term.current_version %}Current {% else %} Non-current{% endif %} version"
+                                href="{% url 'term-manage' term.slug version.number %}">
+                                {{ version.number }}
+                            </a><br>
+                         {% endfor %}
+                     </td>
+                     <td>
+                         {% for version in term.versions.all %}
+                             {% for language, content in version.language_map.items %}
+                                 {% if content %}
+                                     <a class="badge {% if content.placeholder %}badge-warning{% else %}badge-primary{% endif %}"
+                                        rel="tooltip"
+                                        title="Translation {% if content.placeholder %}needs to be{% else %} has been{% endif %} updated"
+                                        href="{% url 'term-content-edit' content.language term.slug term.current_version.number %}">
+                                            {{ content.language }}
+                                     </a>
+                                 {% else %}
+                                     <a class="badge badge-secondary"
+                                        title="Translation does not exist"
+                                        rel="tooltip"
+                                        href="{% url 'term-content-add' language.0 term.slug term.current_version.number %}">
+                                        {{ language.0 }}
+                                     </a>
+                                 {% endif %}
+                             {% endfor %}
+                             <br>
+                         {% endfor %}
+                     </td>
+                 </tr>
+             {% endfor %}
+         </tbody>
+    </table>
+
+    {% if page_obj.has_previous or page_obj.has_next %}
+        <nav class="mx-auto" style="width: 200px;">
+            <ul class="pagination">
+                {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if extra_params %}&{{ extra_params }}{% endif %}">
+                            <i class="fa fa-angle-double-left"></i>
+                            Previous
+                        </a>
+                    </li>
+                {% endif %}
+                {% comment %}
+                {% for p in page_obj.paginator.page_range %}
+                    {% if p == page_obj.number %}
+                        <li class="page-item active">
+                            <a href="#">{{ p }}</a>
+                        </li>
+                    {% else %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ p }}{% if extra_params %}&{{ extra_params }}{% endif %}">
+                            {{ p }}
+                            </a>
+                        </li>
+                    {% endif %}
+                {% endfor %}
+                {% endcomment %}
+                {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if extra_params %}&{{ extra_params }}{% endif %}">
+                            Next
+                            <i class="fa fa-angle-double-right"></i>
+                        </a>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+    {% endif %}
+
+{% endblock %}

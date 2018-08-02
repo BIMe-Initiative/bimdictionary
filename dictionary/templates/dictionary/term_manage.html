@@ -1,0 +1,142 @@
+{% extends 'dictionary/base.html' %}
+
+{% load crispy_forms_tags dictionary_tags %}
+
+{% block container_classes %}{% if termversion.is_current %}current{% else %}not-current{% endif %}{% endblock %}
+
+{% block content %}
+    <nav class="breadcrumb">
+        <a class="breadcrumb-item active" href="{% url 'manage' %}">Manage</a>
+        <span class="breadcrumb-item active" href="#">{{ termversion.term }}</span>
+    </nav>
+
+    {% if not termversion.is_current %}
+        <div class="alert alert-danger">
+            This is not the current version. Click here for
+            <a href="{% url 'term-manage' term.slug term.current_version.number %}">current version</a>
+            .
+        </div>
+    {% endif %}
+
+    <div class="card">
+        <div class="card-body">
+            {% if termversion.term.versions.all %}
+                <div class="dropdown pull-right">
+                    <button class="btn btn-link dropdown-toggle" data-toggle="dropdown">
+                        Version {{ termversion.number }}
+                        {% if termversion.is_current %}(Current){% endif %}
+                        {% if termversion.draft %}(Draft){% endif %}
+                    </button>
+                    <div class="dropdown-menu">
+                        {% for version in termversion.term.versions.all %}
+                            <a class="dropdown-item" href="{% url 'term-manage' term.slug version.number %}">
+                                Version {{ version.number }}
+                                {% if version.is_current %}(Current){% endif %}
+                                {% if version.draft %}(Draft){% endif %}
+                            </a>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endif %}
+
+            <h2>{{ term.title }}</h2>
+            <dl class="row">
+                <dt class="col-sm-2">Acronym:</dt>
+                <dd class="col-sm-10">{{ term.acronym }}</dd>
+                <dt class="col-sm-2">Country:</dt>
+                <dd class="col-sm-10">{{ term.get_country_display }}</dd>
+                <dt class="col-sm-2">Concepts:</dt>
+                <dd class="col-sm-10">
+                {% for concept in term.concepts.all %}
+                    {{ concept }}
+                    {% if not forloop.last %},&nbsp;{% endif %}
+                {% endfor %}
+                </dd>
+            </dl>
+            <div>
+                <form class="pull-right" action="" method="post">
+                    {% csrf_token %}
+                    {% if termversion.is_current %}
+                        <button class="btn btn-link"
+                            type="submit"
+                            name="create_new_version"
+                            value="true">Create New Version</button>
+                    {% elif termversion.draft %}
+                        <button class="btn btn-link"
+                            type="submit"
+                            name="make_current"
+                            value="true">Make Current</button>
+                    {% endif %}
+                </form>
+                <a class="btn btn-link pull-left" href="{% url 'term-edit' term.slug %}">Edit Term</a>
+                <a class="btn btn-link pull-left" href="{% url 'term-detail-redirect-b' term.slug %}">View on site</a>
+            </div>
+        </div>
+    </div>
+
+    <h3 style="margin: 2rem 0 1rem 0">Translations</h3>
+
+    {% for language, content in languages.items %}
+    <div data-id="{{ content.id }}" class="card{% if not content %} blank{% endif %}{% if content.placeholder %} placeholder{% endif %}">
+            <div class="card-body">
+                {% if content %}
+                    <span class="text-muted pull-right term-code">
+                        {{ content.code }}
+                    </span>
+                    <h4 class="card-title">
+                        {{ content.title }}
+                    </h4>
+                    <p class="card-text" data-language="{{ content.language }}">
+                        {{ content.description|highlight_terms|safe }}
+                    </p>
+                    {% if content.extended_description %}
+                        <p class="card-text" data-language="{{ content.language }}">
+                            {{ content.extended_description|safe }}
+                        </p>
+                    {% endif %}
+
+                    {% if content.acronym %}
+                        <div>
+                            <strong>Acronym: </strong>
+                            {{ content.acronym }}
+                        </div>
+                    {% endif %}
+
+                    {% if content.similar.all %}
+                        <div style="margin-bottom: 1rem">
+                            <strong>Similar: </strong>
+                            {% for similar in content.similar.all %}
+                                {{ similar }}
+                                {% if not forloop.last %},&nbsp;{% endif %}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+
+                    {% if content.plurals.all %}
+                        <div style="margin-bottom: 1rem">
+                            <strong>Plurals: </strong>
+                            {% for plural in content.plurals.all %}
+                                {{ plural.plural_title }}
+                                {% if not forloop.last %},&nbsp;{% endif %}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+
+                    <a class="card-link"
+                       href="{% url 'term-content-edit' content.language term.slug termversion.number %}?next={{ request.path }}">
+                        Edit
+                        {{ content.get_language_display }}
+                        translation
+                    </a>
+                {% else %}
+                    <a href="{% url 'term-content-add' language.0 term.slug termversion.number %}">
+                        Add / update {{ language.1 }} translation
+                    </a>
+                {% endif %}
+                {% if content.placeholder %}
+                    <span class="pull-right text-warning">Translation needs to be updated</span>
+                {% endif %}
+            </div>
+        </div>
+    {% endfor %}
+{% endblock %}

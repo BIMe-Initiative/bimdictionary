@@ -1,0 +1,187 @@
+{% extends 'dictionary/base.html' %}
+
+{% load staticfiles %}
+{% load i18n %}
+{% load core_tags %}
+
+{% block extra_head %}
+    <script>
+        var countries = {{ country_codes|safe }};
+        var languages = {{ languages|safe }};
+    </script>
+{% endblock %}
+
+{% block content %}
+    <div class="hide" data-bind="css: {hide: false}">
+        <div id="top"></div>
+        <div class="jumbotron">
+                {% textblock 'dictionary-top' %}
+        </div>
+        <div class="row">
+            <div class="col-md-8">
+
+                {# Filters #}
+
+                <div class="filter">
+                    <small class="nowrap">
+                        Displaying
+                        <span data-bind="text: terms().length"></span>
+                        of
+                        <span data-bind="text: totalCount"></span>
+                        terms
+                    </small>
+                    <div class="filter-wrapper">
+                        <i style="color: #014c8c; position: absolute; right: 28px; top: 35px;"
+                            class="fa fa-spin fa-circle-o-notch"
+                            data-bind="visible: loading"></i>
+                        <div>
+                            <input data-bind="textInput: filter, css: filterLanguageIsRtl() ? 'rtl' : ''"
+                                style="padding-right: 2em"
+                                class="form-control"
+                                type="text"
+                                autofocus
+                                placeholder="Search terms or acronyms">
+                        </div>
+                        <div>
+                            <div class="btn-group">
+                                <button type="button" data-bind="text: filterCountry() ? filterCountry().name : 'Country'"
+                                    class="btn btn-link dropdown-toggle"
+                                    data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                </button>
+                                <div class="dropdown-menu" data-bind="foreach: countries">
+                                    <a href="#" class="dropdown-item" data-bind="text: name, click: $root.filterCountry">
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="btn-group">
+                                <button type="button" data-bind="text: filterConcept() ? filterConcept() : 'Concept'"
+                                    class="btn btn-link dropdown-toggle"
+                                    data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                </button>
+                                <div class="dropdown-menu" data-bind="foreach: concepts">
+                                    <a href="#" class="dropdown-item" data-bind="text: $data, click: $root.filterConcept">
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="btn-group" data-bind="if: languages().length">
+                                <button type="button" data-bind="text: filterLanguage() ? filterLanguage().name : 'Language'"
+                                    class="btn btn-link dropdown-toggle"
+                                    data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                </button>
+                                <div class="dropdown-menu" data-bind="foreach: languages">
+                                    <a href="#" class="dropdown-item" data-bind="text: name, click: $root.filterLanguage">
+                                    </a>
+                                </div>
+                            </div>
+                            <button class="btn btn-link" data-bind="click: clearFilters, visible: isFiltered">
+                                <i class="fa fa-times"></i>
+                                Clear
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                {# Terms list #}
+
+                <div data-bind="foreach: terms">
+                    <div class="card" data-bind="attr:{'data-id': id}">
+
+                        <div class="card-body" data-bind="css: getCss">
+                            <span class="pull-right term-code">
+                                <span class="text-muted clipboard"
+                                    id="code-link"
+                                    rel="tooltip"
+                                    title="Click to copy link"
+                                    data-bind="text: code, attr: {'data-clipboard-text': permalink}">
+                                </span>
+                            </span>
+                            <div class="card-title">
+                                 <h3>
+                                    <a data-bind="attr: {href: url}">
+                                        <span data-bind="text: title"></span>
+                                        <!-- ko if: acronym() -->
+                                            (<span data-bind="text: acronym"></span>)
+                                        <!-- /ko -->
+                                    </a>
+                                    <!-- ko if: country -->
+                                        <img data-bind="attr: {src: flagUrl}" />
+                                    <!-- /ko -->
+                                </h3>
+                            </div>
+                            <div class="card-text description"
+                                data-bind="html: description"></div>
+                            <!-- ko if: extendedDescription -->
+                                <a class="text-right toggle-extended" data-bind="click: toggleExtended" href="#">
+                                    <small data-bind="if: !showExtended()">Show more&hellip;</small>
+                                </a>
+                            <!-- /ko -->
+                            <!-- ko if: showExtended -->
+                                <div data-bind="html: extendedDescription">
+                                </div>
+                            <!-- /ko -->
+                        </div>
+
+                        <div class="card-body text-muted" style="padding-top: 0">
+                            <!-- ko if:author -->
+                                <div>
+                                    <small>Author:</small>
+                                    <small data-bind="text: author"></small>
+                                </div>
+                            <!-- /ko -->
+                            <!-- ko if: synonyms().length -->
+                                <div>
+                                    <small>Similar terms:</small>
+                                    <small data-bind="text: synonyms().join(', ')"></small>
+                                </div>
+                            <!-- /ko -->
+                            <!-- ko if: concepts().length -->
+                                <div>
+                                    <small>Concepts:</small>
+                                    <!-- ko foreach: concepts -->
+                                        <a class="badge badge-secondary" href="#">
+                                            <span data-bind="text: $data, click: $root.filterConcept"></span>
+                                        </a>
+                                    <!-- /ko -->
+                                </div>
+                            <!-- /ko -->
+                        </div>
+
+                        <div class="card-footer">
+                            <nav class="nav nav-inline float-right" data-bind="visible: languages().length">
+                                <!-- ko foreach: languages -->
+                                    <a href="#"
+                                        class="nav-link"
+                                        data-bind="text: $data, click: $parent.currentLanguage, css: {active: $data == $parent.currentLanguage()}"></a>
+                                <!-- /ko -->
+                            </nav>
+                            <small>Version <!-- ko text: version --><!-- /ko --></small>
+                        </div>
+                     </div>
+                </div>
+
+                {# Footer #}
+
+                <a href="#" class="btn btn-block show-more" data-bind="click: showMore, visible: hasMore">
+                    <i class="fa fa-spin fa-circle-o-notch" data-bind="visible: loading"></i>
+                    Show more
+                </a>
+                <a href="#top" class="btn btn-block show-more" data-bind="visible: !hasMore()">Return to top</a>
+            </div>
+
+            {# Sidebar #}
+
+            <div class="col-md-4">
+                <div class="card card-body">
+                    <h4 class="card-title">
+                        {% trans 'Info Channel' %}
+                    </h4>
+                    <div class="card-text">
+                        {% textblock 'info-channel-dictionary' %}
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+    <script src="{% static 'js/dictionary_test.js' %}"></script>
+{% endblock %}

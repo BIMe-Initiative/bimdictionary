@@ -1,0 +1,301 @@
+{% load static %}
+{% load i18n %}
+{% load thumbnail %}
+{% load core_tags %}
+<!DOCTYPE HTML>
+<html>
+    <head>
+    <title>{% trans 'BIM Dictionary' %}</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="google-site-verification" content="v0BBia_2me4Q23MlW6LBClWz55Wf8zGVMMmXFhr7dOo" />
+
+        <link rel="icon" href="{% static 'favicon.ico' %}" type="image/x-icon"/>
+        <link href="//netdna.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+        <link href='//fonts.googleapis.com/css?family=Raleway:400,300,600,200' rel='stylesheet' type='text/css'>
+
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.3/css/bootstrap.min.css" integrity="sha384-Zug+QiDoJOrZ5t4lssLdxGhVrurbmBWopoEl+M6BdEfwnCJZtKxi1KgxUyJq13dy" crossorigin="anonymous">
+
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.3/js/bootstrap.min.js" integrity="sha384-a5N7Y/aK3qNeh15eJKGWxsqtnX/wWdSZSKp+81YjTmS15nvnvxKHuzaWwXHDli+4" crossorigin="anonymous"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/knockout/3.4.2/knockout-min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/1.7.1/clipboard.min.js"></script>
+        <script>
+            $(document).ready(function() {
+                var popoverShow = function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    var el = $(this);
+                    var term = $(this).text();
+                    var id = $(this).closest('[data-id]').data('id');
+                    var language = $(this).closest('[data-language]').data('language');
+                    if (language == undefined) language = sessionStorage.getItem(id);
+                    $.ajax({
+                        url: '/api/v1/dictionary/',
+                        data: {
+                            title: term,
+                            language: language,
+                        }
+                    }).done(function(data) {
+                        if(data.results.length) {
+                            var term_data;
+                            if(language != undefined) {
+                                $.each(data.results[0].content, function(index, value) {
+                                    if(value.language == language)
+                                        term_data = value;
+                                })
+                            } else {
+                                term_data = data.results[0].content[0];
+                            }
+                            if(el.parent().hasClass('popover-content')) {
+                                window.location = term_data.url;
+                            } else {
+                                el.attr('data-content', term_data.description);
+                                el.attr('data-original-title', term_data.title);
+                                el.popover({html: true});
+                                el.popover('show');
+                            }
+                        }
+                    });
+                };
+                var popoverHide = function() {
+                    var el = $(this);
+                    setTimeout(function() {
+                        el.popover('hide');
+                    }, 1000);
+                };
+                $('.term').popover({
+                    html: true,
+                    trigger: 'manual',
+                });
+                $(document).on('click', '.term', popoverShow);
+                $(document).on('mouseleave', '.term', popoverHide);
+                $('form input, form select').not('[type=submit]').addClass('form-control');
+                $('a[rel=tooltip]').tooltip();
+
+                var clipboard = new Clipboard('.clipboard')
+                clipboard.on('success', function(e) {
+                    e.clearSelection();
+                    //$(e.trigger).html($(e.trigger).html() + '<i class="fa fa-fw fa-check"></i>');
+                    $(e.trigger).attr('title', 'Link copied');
+                    $(e.trigger).text('Link copied');
+                })
+            });
+
+            (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+                (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+               m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+                 })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+                ga('create', 'UA-26995337-2', 'auto');
+                ga('send', 'pageview');
+        </script>
+        <style>
+            a, .btn-link {
+                color:  #4daac2;
+            }
+            input.rtl,
+            .rtl .card-title,
+            .rtl .card-text {
+                direction: rtl !important;
+                unicode-bidi: bidi-override !important;
+                text-align:right;
+            }
+            .rtl .term-code {
+                float: left;
+            }
+            body, .popover, a, button {
+                font-family: "Raleway";
+            }
+            div.popover-content a.term {
+                border: none;
+                text-decoration: none;
+                color: #37313c;
+                cursor: auto;
+            }
+            .hide {
+                display: none;
+            }
+            .translation a.term {
+            }
+            a.term {
+                border-bottom: 1px dotted #722b12;
+                color: #722b12;
+                cursor: help;
+                text-decoration: none;
+                outline: none;
+            }
+            .missing-term {
+                color: #aaa;
+            }
+            .filter {
+                padding: 0 0 2rem 0;
+            }
+            .filter-wrapper .dropdown-menu {
+                max-height: 300px;
+                overflow: auto;
+            }
+            .show-more {
+                margin: 1em auto;
+                width: 30%;
+            }
+            .similar-terms {
+                font-size: 85%;
+                margin-top: 5px;
+            }
+            .control-group button {
+                margin-bottom: 10px;
+            }
+            .control-group input {
+                width: 100%;
+                font-size: 110%;
+            }
+            .control-group select {
+                font-size: 110%;
+            }
+            .text-info {
+                color: #999;
+            }
+            .error .help-block {
+                color: #d9534f;
+            }
+            .navbar-toggle {
+                position: absolute;
+                top: 10px;
+                right: -10px;
+            }
+            .navbar-brand img {
+                height: 60px;
+            }
+            .navbar-light .navbar-nav .nav-link {
+                color: inherit;
+            }
+            .card {
+                margin-bottom: .75rem;
+            }
+            .card .nav .nav-link {
+                padding: 0 5px;
+                z-index: 10;
+            }
+            .card-title a,
+            a.toggle-extended {
+                color:  #4daac2;
+            }
+            .card-title a:hover,
+            a.toggle-extended:hover {
+                color:  #4599ae;
+            }
+            .nav-link.active {
+                font-weight: bold;
+            }
+            .label-default {
+            }
+            .extended-description {
+                margin-top: 1em;
+                border-top: 1px solid #e5e5e5;
+            }
+            .jumbotron {
+                padding: 2em;
+            }
+            .jumbotron p {
+                margin: 0;
+            }
+            .term-version {
+            }
+            .card.blank {
+                background: #eee;
+            }
+            .card.blank a {
+                color: #666;
+            }
+            .card.placeholder {
+                background: lightyellow;
+            }
+			ul.messages {
+				list-style: none;
+				position: absolute;
+				left: 40%;
+				right: 40%;
+				width: 20%;
+				margin: 0;
+			}
+			ul.messages li {
+				padding: 5px 10px;
+				text-align: center;
+			}
+			ul.messages .error {
+				background: #f44336;
+				color: #fff;
+			}
+			ul.messages .warning {
+				background: #f44336;
+				color: #fff;
+			}
+			ul.messages .info {
+				background: #337ab7;
+				color: #fff;
+			}
+            a.old-version {
+                color: #666;
+            }
+            .clipboard {
+                cursor: pointer;
+            }
+        </style>
+        {% block extra_head %}{% endblock %}
+    </head>
+    <body>
+		{% if messages %}
+			<ul class="messages">
+    			{% for message in messages %}
+    				<li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+    			{% endfor %}
+			</ul>
+		{% endif %}
+        <div class="container {% block container_classes %}{% endblock %}">
+
+            <nav class="navbar navbar-expand-md navbar-light">
+                <button class="navbar-toggler navbar-toggler-right"
+                    type="button"
+                    data-toggle="collapse"
+                    data-target="#navbarSupportedContent"
+                    aria-controls="navbarSupportedContent"
+                    aria-expanded="false"
+                    aria-label="Toggle navigation">
+                        <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <a class="navbar-brand" href="{% url 'index' %}">
+                    <img class="" src="{% static 'images/bimd_logo.svg' %}">
+                </a>
+
+                <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                    <div class="mr-auto"></div>
+                    <ul class="navbar-nav">
+                        <li class="nav-item">
+                            <a class="nav-link" href="/about/">{% trans 'About' %}</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/basics/">{% trans 'Basics' %}</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/participate/">{% trans 'Participate' %}</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/sponsor/">{% trans 'Sponsorship' %}</a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="#" class="nav-link">
+                                <strong>&middot;</strong>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" target="_blank" href="http://bimexcellence.org">{% trans 'BIMe Initiative' %}</a>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+
+            {% block content %}{% endblock %}
+        </div>
+    </body>
+</html>
