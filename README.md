@@ -1,10 +1,10 @@
 # BIM Dictionary
-The BIM Dictionary (hhtp://BIMdictionary.com/) is a resource for all to freely use. It includes hundreds of **Dictionary Items**: terms with their descriptions, abbreviations and synonyms. Each Dictionary Item has its own page so it can be easily referenced in documents and website
-
+The BIM Dictionary (https://BIMdictionary.com/) is a resource for all to freely use. It includes hundreds of **Dictionary Items**: terms with their descriptions, abbreviations and synonyms. Each Dictionary Item has its own page so it can be easily referenced in documents and website
+The Open Source repository on GitHub is of the Community Edition | now different from the Open Access edition released in Aug 15, 2019 
 The BIM Dictionary provides a reliable resource for establishing a common understanding of frequently used terms across the _Construction Industry_.
 The BIM Dictionary connects hundreds of terms to their vetted descriptions and translations, and act as a peer-reviewed reference to online guides and tools.
 
-As an ongoing project with more than **70 worldwide volunteers**, the BIM Dictionary has the following objectives:
+As an ongoing project with more than **115 worldwide volunteers**, the BIM Dictionary has the following objectives:
 
 * Provide an accessible, easy-to-use glossary of terms needed to discuss and promote digital innovation;
 * Provide a research-driven description of these terms according to clear selection, inclusion, and rejection rules;
